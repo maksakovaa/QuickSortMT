@@ -36,10 +36,9 @@ void ThreadPool::push_task(FuncType f, int* arr, long left, long right_bound, st
         }
     );
     m_thread_queues[queue_to_push].push(task);
-    start(arr, left, right_bound, prom);
 }
 
-void ThreadPool::threadFunc(int qindex, int* arr, long left, long right_bound, std::shared_ptr<std::promise<void>> &prom)
+void ThreadPool::threadFunc(int qindex, int* arr, long left, long right_bound, std::shared_ptr<std::promise<void>> prom)
 {
     while (true)
     {
@@ -49,17 +48,21 @@ void ThreadPool::threadFunc(int qindex, int* arr, long left, long right_bound, s
         for (; i < m_thread_count; i++)
         {
             if (res = m_thread_queues[(qindex + i) % m_thread_count].fast_pop(task_to_do))
+            {
                 break;
+            }
         }
 
         if (!res)
         {
             m_thread_queues[qindex].pop(task_to_do);
         }
+
         else if (!task_to_do)
         {
             m_thread_queues[(qindex + i) % m_thread_count].push(task_to_do);
         }
+
         if (!task_to_do)
         {
             return;

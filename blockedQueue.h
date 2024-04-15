@@ -1,20 +1,21 @@
 #pragma once
 #include <iostream>
 #include <queue>
-#include <future>
-#include <condition_variable>
 #include <vector>
-#include <thread>
 #include <chrono>
+#include <thread>
+#include <mutex>
+#include <future>
 #include <functional>
+#include <condition_variable>
 
-template<class T>
-class BlockedQueue {
+template<class T> class BlockedQueue
+{
 public:
     void push(T& item)
     {
         std::lock_guard<std::mutex> l(m_locker);
-        m_task_queue.push(item);
+        m_task_queue.push_back(item);
         m_notifier.notify_one();
     }
     void pop(T& item)
@@ -27,19 +28,21 @@ public:
             });
         }
         item = m_task_queue.front();
-        m_task_queue.pop();
+        m_task_queue.pop_front();
     }
     bool fast_pop(T& item)
     {
         std::lock_guard<std::mutex> l(m_locker);
         if (m_task_queue.empty())
+        {
             return false;
+        }
         item = m_task_queue.front();
-        m_task_queue.pop();
+        m_task_queue.pop_front();
         return true;
     }
 private:
     std::mutex m_locker;
-    std::queue<T> m_task_queue;
+    std::deque<T> m_task_queue;
     std::condition_variable m_notifier;
 };

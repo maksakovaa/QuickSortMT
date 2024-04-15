@@ -11,5 +11,5 @@ public:
     void check(int* test, int arrsize);
 private:
     bool make_thread;
-    ThreadPool pool;
+    ThreadPool m_pool;
 };

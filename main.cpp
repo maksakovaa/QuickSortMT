@@ -12,7 +12,7 @@ QuickSort Sort;
 
 int main()
 {
-
+    system("chcp 65001");
     Sort.setMT_on();
     long arr_size = 100000000;
     Timer.start();
@@ -28,7 +28,7 @@ int main()
     cout << "Время многопоточной сортировки: " << Timer.result() << " секунд" << endl;
     
     Sort.check(array, arr_size);
-
+    delete[] array;
     Sort.setMT_off();
     Timer.start();
     array = Rand_arr.createArray(arr_size);
@@ -42,5 +42,6 @@ int main()
     cout << "Время однопоточной сортировки: " << Timer.result() << " секунд" << endl;
     
     Sort.check(array, arr_size);
+    delete[] array;
     return 0;
 }
