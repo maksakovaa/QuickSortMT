@@ -27,7 +27,7 @@ int main()
     
     Sort.check(array, arr_size);
 
-//    Sort.setMT_off();
+    Sort.setMT_off();
     Timer.start();
     array = Rand_arr.createArray(arr_size);
     Timer.stop();
