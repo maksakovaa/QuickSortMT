@@ -6,6 +6,7 @@
 #include <vector>
 #include <thread>
 #include <chrono>
+#include <functional>
 
 template<class T>
 class BlockedQueue {
@@ -20,7 +21,11 @@ public:
     {
         std::unique_lock<std::mutex> l(m_locker);
         if (m_task_queue.empty())
-            m_notifier.wait(l, [this] {return !m_task_queue.empty(); });
+        {
+            m_notifier.wait(l, [this] {
+                return !m_task_queue.empty();
+            });
+        }
         item = m_task_queue.front();
         m_task_queue.pop();
     }

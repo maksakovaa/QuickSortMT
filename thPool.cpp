@@ -4,13 +4,14 @@ ThreadPool::ThreadPool() :
 	m_thread_count(std::thread::hardware_concurrency() != 0 ? std::thread::hardware_concurrency() : 4),
 	m_thread_queues(m_thread_count) {}
 
-void ThreadPool::start()
+void ThreadPool::start(int* arr, long left, long right_bound, std::shared_ptr<std::promise<void>> prom)
 {
 	for (int i = 0; i < m_thread_count; i++)
     {
-		m_threads.emplace_back(&ThreadPool::threadFunc, this, i);
+		m_threads.emplace_back(&ThreadPool::threadFunc, this, i, arr, left, right_bound, prom);
 	}
 }
+
 
 void ThreadPool::stop()
 {
@@ -25,19 +26,20 @@ void ThreadPool::stop()
     }
 }
 
-std::future<void> ThreadPool::push_task(FuncType f, int* arr, long left, long right_bound)
+
+void ThreadPool::push_task(FuncType f, int* arr, long left, long right_bound, std::shared_ptr<std::promise<void>> &prom)
 {
     int queue_to_push = m_index++ % m_thread_count;
-    auto prom = std::make_shared<std::promise<void>>();
-    auto res = prom->get_future();
-    task_type task([=] {
-        f(arr, left, right_bound);
-        prom->set_value();
-        });
+    task_type task = ([=](int*, long, long, std::shared_ptr<std::promise<void>>) {
+           f(arr, left, right_bound, prom);
+            prom->set_value();
+        }
+    );
     m_thread_queues[queue_to_push].push(task);
-    return res;
+    start(arr, left, right_bound, prom);
 }
-void ThreadPool::threadFunc(int qindex)
+
+void ThreadPool::threadFunc(int qindex, int* arr, long left, long right_bound, std::shared_ptr<std::promise<void>> &prom)
 {
     while (true)
     {
@@ -62,6 +64,6 @@ void ThreadPool::threadFunc(int qindex)
         {
             return;
         }
-        task_to_do();
+        task_to_do(arr, left, right_bound, prom);
     }
 }

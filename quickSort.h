@@ -1,8 +1,5 @@
 #pragma once
-#include "reqHandler.h"
-
-extern RequestHandler rh;
-//extern bool make_thread;
+#include "thPool.h"
 
 class QuickSort
 {
@@ -10,8 +7,9 @@ public:
     QuickSort();
     void setMT_on();
     void setMT_off();
-    static void quicksort(int* array, long left, long right);
+    void quicksort(int* array, long left, long right, std::shared_ptr<std::promise<void>> prom);
     void check(int* test, int arrsize);
 private:
-    static bool make_thread;
+    bool make_thread;
+    ThreadPool pool;
 };

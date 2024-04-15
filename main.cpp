@@ -4,14 +4,15 @@
 
 using namespace std;
 
-//bool make_thread = false;
-RequestHandler rh;
+
 ArrayCreator Rand_arr;
 TimeCounter Timer;
 QuickSort Sort;
 
+
 int main()
 {
+
     Sort.setMT_on();
     long arr_size = 100000000;
     Timer.start();
@@ -21,7 +22,8 @@ int main()
     cout << "Массив на " << arr_size << " элементов сгенерирован за " << Timer.result() << " секунд" << endl;
 
     Timer.start();
-    Sort.quicksort(array, 0, arr_size);
+    auto promiseMTon = std::make_shared<std::promise<void>>();
+    Sort.quicksort(array, 0, arr_size, promiseMTon);
     Timer.stop();
     cout << "Время многопоточной сортировки: " << Timer.result() << " секунд" << endl;
     
@@ -34,7 +36,8 @@ int main()
     cout << "Массив на " << arr_size << " элементов сгенерирован за " << Timer.result() << " секунд" << endl;
     
     Timer.start();
-    Sort.quicksort(array, 0, arr_size);
+    auto promiseMToff = std::make_shared<std::promise<void>>();
+    Sort.quicksort(array, 0, arr_size, promiseMToff);
     Timer.stop();
     cout << "Время однопоточной сортировки: " << Timer.result() << " секунд" << endl;
     
