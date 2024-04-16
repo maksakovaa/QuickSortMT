@@ -1,9 +1,9 @@
+#include <iostream>
 #include "quickSort.h"
 #include "arrayGen.h"
 #include "timer.h"
 
 using namespace std;
-
 
 ArrayCreator Rand_arr;
 TimeCounter Timer;
@@ -22,8 +22,7 @@ int main()
     cout << "Массив на " << arr_size << " элементов сгенерирован за " << Timer.result() << " секунд" << endl;
 
     Timer.start();
-    auto promiseMTon = std::make_shared<std::promise<void>>();
-    Sort.quicksort(array, 0, arr_size, promiseMTon);
+    Sort.quicksort(array, 0, arr_size);
     Timer.stop();
     cout << "Время многопоточной сортировки: " << Timer.result() << " секунд" << endl;
     
@@ -36,8 +35,7 @@ int main()
     cout << "Массив на " << arr_size << " элементов сгенерирован за " << Timer.result() << " секунд" << endl;
     
     Timer.start();
-    auto promiseMToff = std::make_shared<std::promise<void>>();
-    Sort.quicksort(array, 0, arr_size, promiseMToff);
+    Sort.quicksort(array, 0, arr_size);
     Timer.stop();
     cout << "Время однопоточной сортировки: " << Timer.result() << " секунд" << endl;
     

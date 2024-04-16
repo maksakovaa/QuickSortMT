@@ -15,14 +15,10 @@ void QuickSort::setMT_on()
     make_thread = true;
 }
 
-void QuickSort::quicksort(int *array, long left, long right, std::shared_ptr<std::promise<void>> prom)
+void QuickSort::quicksort(int *array, long left, long right)
 {
     if(left >= right)
     {
-        if (prom)
-        {
-            prom->set_value();
-        }
         return;
     }
     
@@ -47,25 +43,26 @@ void QuickSort::quicksort(int *array, long left, long right, std::shared_ptr<std
             right_bound--;
         }
     } while (left_bound <= right_bound);
-    if (left_bound < right)
-    {
-        auto promise_right = std::make_shared<std::promise<void>>();
+
+        auto promise = std::make_shared<std::promise<void>>();
         if(make_thread && (right_bound - left > 10000))
         {
-            m_pool.push_task(std::bind(&QuickSort::quicksort, this, array, left, right_bound, prom), array, left, right_bound, prom);
-            m_pool.start(array, left, right_bound, prom);
-            quicksort(array, left_bound, right, prom);
+            ReqHandler rh;
+            rh.push_task(&QuickSort::quicksort_mt, this, std::ref(array), left, right_bound, promise);
+            quicksort(array, left_bound, right);
         }
         else
         {
-            quicksort(array, left, right_bound, nullptr);
-            quicksort(array, left_bound, right, nullptr);
+            quicksort(array, left, right_bound);
+            quicksort(array, left_bound, right);
         }
-        if (prom)
-        {
-            promise_right->get_future().wait();
-        }
-    }   
+}
+
+void QuickSort::quicksort_mt(int* array, long left, long right, std::shared_ptr<std::promise<void>> promise)
+{
+    std::future<void> f = std::async(std::launch::async, [&]() { quicksort(array, left, right); });
+    f.wait();
+    promise->set_value();
 }
 
 void QuickSort::check(int* test, int arrsize)

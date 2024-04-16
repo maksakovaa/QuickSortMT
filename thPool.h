@@ -1,21 +1,37 @@
 #pragma once
-#include "blockedQueue.h"
-
-typedef void(*FuncType)(int*, long, long, std::shared_ptr<std::promise<void>>);
-typedef std::function<void(int*, long, long, std::shared_ptr<std::promise<void>>)> task_type;
+#include <iostream>
+#include <queue>
+#include <vector>
+#include <chrono>
+#include <thread>
+#include <mutex>
+#include <future>
+#include <functional>
+#include <memory>
+#include <condition_variable>
 
 class ThreadPool
 {
 public:
-    using FuncType = std::function<void(int*, long, long, std::shared_ptr<std::promise<void>> )>;
-    ThreadPool();
-    void start(int* arr, long left, long right_bound, std::shared_ptr<std::promise<void>> prom);
+    ThreadPool() = default;
+    void start();
     void stop();
-    void push_task(FuncType f, int* arr, long left, long right_bound, std::shared_ptr<std::promise<void>> &prom);
-    void threadFunc(int qindex, int* arr, long left, long right_bound, std::shared_ptr<std::promise<void>> prom);
+    template<typename F, typename... Args> void push_task(F&& f, Args&&... args);
+    void threadFunc();
 private:
     std::vector<std::thread> m_threads;
-    std::vector<BlockedQueue<task_type>> m_thread_queues;
-    int m_index;
-    int m_thread_count;
+    std::queue<std::function<void()>> m_thread_queues;
+    std::mutex m_locker;
+    std::condition_variable m_event_holder;
+    volatile bool m_work;
+    int m_thread_count = 4;
 };
+
+template<typename F, typename... Args> void ThreadPool::push_task(F&& f, Args&&... args)
+{
+    {
+        std::lock_guard<std::mutex> l(m_locker);
+        m_thread_queues.push(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+    }
+    m_event_holder.notify_one();
+}
