@@ -12,7 +12,9 @@ QuickSort Sort;
 
 int main()
 {
+#if defined(_WIN32) || (_win64)
     system("chcp 65001");
+#endif
     Sort.setMT_on();
     long arr_size = 100000000;
     Timer.start();
