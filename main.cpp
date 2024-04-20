@@ -40,6 +40,5 @@ int main()
     cout << "Время однопоточной сортировки: " << Timer.result() << " секунд" << endl;
     
     Sort.check(array, arr_size);
-    delete[] array;
     return 0;
 }
